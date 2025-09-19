@@ -24,31 +24,27 @@ class Game < Gosu::Window
 
 
   def update()
-    @defensive_missiles.each do |missile|
-      missile.update
+    @defensive_missiles.each {|missile| missile.update}
+    hit = @defensive_missiles.select {|missile| missile.hit?}
+    @explosions += hit.map do |missile| 
+      Explosion.new(missile.x, missile.y)
     end
+
+    @defensive_missiles = @defensive_missiles - hit
     # add new missiles
 
 
     # check if missile should keep existing
-    @attacking_missiles.each do |missile|
-      missile.update
-      # check if missile hits target
-      if missile.hit?
-        @explosions << Explosion.new(missile.x, missile.y)
-        missile.delete
-      end
-      # check if offensive is hit
-      
-
-    end
-    @explosions.each do |explosion|
-      explosion.update
+    @attacking_missiles.each {|missile| missile.update}
+    hit = @attacking_missiles.select {|missile| missile.hit?}
+    @explosions += hit.map do |missile| 
+      Explosion.new(missile.x, missile.y)
     end
 
-    
-   
+    @attacking_missiles = @attacking_missiles - hit
 
+    @explosions.each {|explosion| explosion.update}
+    @explosions.reject! {|explosion| explosion.size == 100}
   end
 
   def draw()

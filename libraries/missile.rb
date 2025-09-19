@@ -1,5 +1,6 @@
 class Offensive_missile 
-  attr_accessor :x, :y
+  #macron
+  attr_reader :x, :y
   @@targets = [100, 500, 900, 200, 300, 400, 600, 700, 800]
   
   def initialize(speed)
@@ -31,12 +32,11 @@ class Offensive_missile
   end
 
   def hit?
-    if @x == @target_x && @y == @target_y
-      true
-    else
-      false
+    if @x == @target && @y == 700
+      return true
+    else 
+      return false
     end
-
   end
 
   def draw()
@@ -48,6 +48,9 @@ end
 
 
 class Defensive_missiles
+
+  attr_reader :x, :y
+
   @@gun_tower =  [100, 500, 900]
 
   def initialize(speed, target_x, target_y)
@@ -63,6 +66,14 @@ class Defensive_missiles
 
     @vel_y = (@target_y - @y) / @speed.to_f
     @vel_x = (@target_x - @x) / @speed.to_f
+  end
+
+  def hit?
+    if @x == @target_x && @y == @target_y
+      return true
+    else 
+      return false
+    end
   end
 
   def update()
@@ -84,12 +95,13 @@ end
 
 class Explosion 
 
+  attr_reader :size
   def initialize(x, y)
     @x = x
     @y = y
-    @size = 1
+    @size = 20
 
-    @explosion = Gosu::Image.new('media/IMG/circle.png')
+    @explosion = Gosu::Image.new('media/IMG/circle(2).png')
   end
 
   def update()
@@ -97,7 +109,9 @@ class Explosion
   end 
 
   def draw()
-    @explosion.draw(@x, @y, 1, @size/200, @size/200)
+    x = @x-@size/2
+    y = @y-@size/2
+    @explosion.draw(x, y, 1, @size/225.to_f, @size/225.to_f)
   end
 
 end
