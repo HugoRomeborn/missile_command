@@ -11,13 +11,13 @@ class Game < Gosu::Window
     @explosions = []
 
     10.times do
-      @attacking_missiles << Offensive_missile.new(400)
+      @attacking_missiles << Offensive_missile.new(1)
     end
   end
 
   def button_down(id)
     if id == 256
-      @defensive_missiles << Defensive_missiles.new(100, mouse_x, mouse_y)
+      @defensive_missiles << Defensive_missiles.new(10, mouse_x, mouse_y)
     end
 
   end
@@ -25,7 +25,7 @@ class Game < Gosu::Window
 
   def update()
     @defensive_missiles.each {|missile| missile.update}
-    hit = @defensive_missiles.select {|missile| missile.hit?}
+    hit = @defensive_missiles.select {|missile| missile.hit?(@explosions)}
     @explosions += hit.map do |missile| 
       Explosion.new(missile.x, missile.y)
     end
@@ -36,7 +36,7 @@ class Game < Gosu::Window
 
     # check if missile should keep existing
     @attacking_missiles.each {|missile| missile.update}
-    hit = @attacking_missiles.select {|missile| missile.hit?}
+    hit = @attacking_missiles.select {|missile| missile.hit?(@explosions)}
     @explosions += hit.map do |missile| 
       Explosion.new(missile.x, missile.y)
     end

@@ -2,26 +2,51 @@ class Missile
   #macron
   attr_reader :x, :y
   
-  def hit?
-    if @x == @target_x && @y == @target_y
+  def hit?(explosions)
+    if @x == @target_x && @y == @target_y || in_explosion(explosions)
       return true
-    else 
-      return false
+    end 
+    false
+  end
+
+  def in_explosion(explosions)
+    explosions.each do |explosion|
+      if @x > explosion.x && @x < explosion.x + explosion.size && @y > explosion.y && @y < explosion.y + explosion.size
+        return true
+      end
     end
+    false
+  end
+
+  def speed_calculator()
+    @angle = Math.atan((@target_y-@y)/(@target_x-@x))
+    
+    if @target_x < @x
+      @angle += 3.14159265359
+    end
+    @vel_x = Math.cos(@angle) * @speed
+    @vel_y = Math.sin(@angle) * @speed
   end
 
   def update()
     @x += @vel_x
     @y += @vel_y
     
-    if @y <= @target_y
-      @x = @target_x
-      @y = @target_y
+    if @missile_type == :offensive
+      if @y >= @target_y
+        @x = @target_x
+        @y = @target_y
+      end
+    else
+      if @y <= @target_y
+        @x = @target_x
+        @y = @target_y
+      end
     end
   end
 
   def draw()
-    @missile.draw(@x, @y, 1, 0.1, 0.1)
+    @missile.draw_rot(@x - 18, @y, 1, @angle*360/(2*3.14159265359), 1, 0.5, 0.1, 0.1)
   end
 end
 
@@ -31,6 +56,7 @@ class Offensive_missile < Missile
   @@targets = [100, 500, 900, 200, 300, 400, 600, 700, 800]
   
   def initialize(speed)
+    @missile_type = :offensive
     @speed = speed
 
     @missile = Gosu::Image.new('media/IMG/missile_2.png')
@@ -38,7 +64,7 @@ class Offensive_missile < Missile
     #chose target and starting position
     @target_x = @@targets[rand(9)]
     @target_y = 700
-    @x = @target_x + rand(401) -200
+    @x = @target_x + rand(801) -400.1
     if @x < 0
       @x=0
     elsif @x > 1000
@@ -46,8 +72,7 @@ class Offensive_missile < Missile
     end
     @y = 0
 
-    @vel_y = @target_y / @speed
-    @vel_x = (@target_x - @x) / @speed.to_f
+    speed_calculator()
   end
 end
 
@@ -58,6 +83,7 @@ class Defensive_missiles < Missile
   @@gun_towers =  [100, 500, 900]
 
   def initialize(speed, target_x, target_y)
+    @missile_type = :defensive
     @speed = speed
 
     @missile = Gosu::Image.new('media/IMG/missile_2.png')
@@ -68,14 +94,13 @@ class Defensive_missiles < Missile
     @x = @@gun_towers[rand(3)]
     @y = 700
 
-    @vel_y = (@target_y - @y) / @speed.to_f
-    @vel_x = (@target_x - @x) / @speed.to_f
+    speed_calculator()
   end
 end
 
 class Explosion 
 
-  attr_reader :size
+  attr_reader :size, :x, :y
   def initialize(x, y)
     @x = x
     @y = y
