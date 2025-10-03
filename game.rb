@@ -17,7 +17,7 @@ class Game < Gosu::Window
 
   def button_down(id)
     if id == 256
-      @defensive_missiles << Defensive_missiles.new(300, mouse_x, mouse_y)
+      @defensive_missiles << Defensive_missiles.new(100, mouse_x, mouse_y)
     end
 
   end
