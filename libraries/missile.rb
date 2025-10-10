@@ -11,7 +11,7 @@ class Missile
 
   def in_explosion(explosions)
     explosions.each do |explosion|
-      if @x > explosion.x && @x < explosion.x + explosion.size && @y > explosion.y && @y < explosion.y + explosion.size
+      if @x > explosion.x - (explosion.size)/2 && @x < explosion.x + (explosion.size)/2 && @y > explosion.y - (explosion.size) /2 && @y < explosion.y + (explosion.size)/2
         return true
       end
     end
@@ -32,21 +32,15 @@ class Missile
     @x += @vel_x
     @y += @vel_y
     
-    if @missile_type == :offensive
-      if @y >= @target_y
-        @x = @target_x
-        @y = @target_y
-      end
-    else
-      if @y <= @target_y
-        @x = @target_x
-        @y = @target_y
-      end
-    end
+  
+    if at_target?()
+      @x = @target_x
+      @y = @target_y
+    end  
   end
 
   def draw()
-    @missile.draw_rot(@x - 18, @y, 1, @angle*360/(2*3.14159265359), 1, 0.5, 0.1, 0.1)
+    @missile.draw_rot(@x - Math.sin(@angle) * 15, @y - Math.cos(@angle) * 15, 1, @angle*360/(2*3.14159265359), 1, 0.5, 0.1, 0.1)
   end
 end
 
@@ -62,7 +56,7 @@ class Offensive_missile < Missile
     @missile = Gosu::Image.new('media/IMG/missile_2.png')
 
     #chose target and starting position
-    @target_x = @@targets[rand(9)]
+    @target_x = @@targets[rand(9)] 
     @target_y = 700
     @x = @target_x + rand(801) -400.1
     if @x < 0
@@ -74,16 +68,35 @@ class Offensive_missile < Missile
 
     speed_calculator()
   end
+
+  def at_target?
+    @y >= @target_y
+  end
 end
 
 
 
 class Defensive_missiles < Missile
 
-  @@gun_towers =  [100, 500, 900]
+  @@gun_towers =  [
+    {
+      id: 0,
+      ammo: 15,
+      position: 100
+    }, 
+    {
+      id: 1,
+      ammo: 15,
+      position: 500
+    }, 
+    {
+      id: 2,
+      ammo: 15,
+      position: 900
+    }
+  ]
 
   def initialize(speed, target_x, target_y)
-    @missile_type = :defensive
     @speed = speed
 
     @missile = Gosu::Image.new('media/IMG/missile_2.png')
@@ -91,10 +104,28 @@ class Defensive_missiles < Missile
     #chose target and starting position
     @target_x = target_x
     @target_y = target_y
-    @x = @@gun_towers[rand(3)]
+    @x = @@gun_towers[choose_tower()][:position]
     @y = 700
 
     speed_calculator()
+  end
+
+  def choose_tower()
+    smallest = @@gun_towers[0]
+    @@gun_towers.each_with_index do |tower, i|
+      if (tower[:position] - @target_x).abs < (smallest[:position] - @target_x).abs
+        smallest = tower
+      end
+    end
+    @@gun_towers[smallest[:id]][:ammo] -= 1
+    if @@gun_towers[smallest[:id]][:ammo] == 0
+      @@gun_towers.delete_at(smallest[:id])
+    end
+    smallest[:id]
+  end
+
+  def at_target?
+    @y <= @target_y
   end
 end
 
