@@ -1,3 +1,7 @@
+require 'Gosu'
+
+
+
 class Missile
   #macron
   attr_reader :x, :y
@@ -11,7 +15,8 @@ class Missile
 
   def in_explosion(explosions)
     explosions.each do |explosion|
-      if @x > explosion.x - (explosion.size)/2 && @x < explosion.x + (explosion.size)/2 && @y > explosion.y - (explosion.size) /2 && @y < explosion.y + (explosion.size)/2
+      distance = Math.sqrt((explosion.x-@x)**2 + (explosion.y-@y)**2)
+      if  distance < explosion.size/2
         return true
       end
     end
@@ -20,6 +25,7 @@ class Missile
 
   def speed_calculator()
     @angle = Math.atan((@target_y-@y)/(@target_x-@x))
+
     
     if @target_x < @x
       @angle += 3.14159265359
@@ -40,7 +46,7 @@ class Missile
   end
 
   def draw()
-    @missile.draw_rot(@x - Math.sin(@angle) * 15, @y - Math.cos(@angle) * 15, 1, @angle*360/(2*3.14159265359), 1, 0.5, 0.1, 0.1)
+    @missile.draw_rot(@x, @y, 1, @angle*360/(2*3.14159265359), 1, 0.5, 0.1, 0.1)
   end
 end
 
@@ -96,7 +102,9 @@ class Defensive_missiles < Missile
     }
   ]
 
-  def initialize(speed, target_x, target_y)
+   
+
+  def initialize(speed, target_x, target_y, buildings)
     @speed = speed
 
     @missile = Gosu::Image.new('media/IMG/missile_2.png')
@@ -104,24 +112,25 @@ class Defensive_missiles < Missile
     #chose target and starting position
     @target_x = target_x
     @target_y = target_y
-    @x = @@gun_towers[choose_tower()][:position]
+    @x = choose_tower().x
     @y = 700
 
     speed_calculator()
   end
 
-  def choose_tower()
-    smallest = @@gun_towers[0]
-    @@gun_towers.each_with_index do |tower, i|
-      if (tower[:position] - @target_x).abs < (smallest[:position] - @target_x).abs
+  def choose_tower(buildings)
+    # if @@gun_towers == []
+    #   return false
+    # end
+
+    smallest = [0]
+    buildings.towers.each_with_index do |tower, i|
+      if (tower.x - @target_x).abs < (smallest.x - @target_x).abs
         smallest = tower
       end
     end
-    @@gun_towers[smallest[:id]][:ammo] -= 1
-    if @@gun_towers[smallest[:id]][:ammo] == 0
-      @@gun_towers.delete_at(smallest[:id])
-    end
-    smallest[:id]
+    buildings.lose_ammo
+    smallest
   end
 
   def at_target?
